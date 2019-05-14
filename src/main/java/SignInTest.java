@@ -1,51 +1,36 @@
-import com.sun.javafx.PlatformUtil;
+import com.testvagrant.utils.MiscConstants;
+import com.testvagrant.utils.PropertFileManager;
+import com.testvagrant.utils.TestCaseTemplate;
+
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class SignInTest {
+public class SignInTest extends TestCaseTemplate {
 
-    WebDriver driver = new ChromeDriver();
+	@Test
+	public void shouldThrowAnErrorIfSignInDetailsAreMissing() {
 
-    @Test
-    public void shouldThrowAnErrorIfSignInDetailsAreMissing() {
+		// Navigating to signIn popup
+		logger.log("Navigating to signIn popup");
+		library.clickElement(library.getByObject("yourTrips")); // Click on Your Trips link
+		library.clickElement(library.getByObject("signInLink")); // Click on Sign In link
 
-        setDriverPath();
+		// Switching to iframe in Login popup
+		logger.log("Switching to iframe in Login popup");
+		library.switchToFrame(library.getByObject("loginFrame"));
 
-        driver.get("https://www.cleartrip.com/");
-        waitFor(2000);
+		// CLick on Sign in button before entering login details for getting login error
+		logger.log("CLick on Sign in button before entering login details for getting login error");
+		library.clickElement(library.getByObject("signInBtn"));
 
-        driver.findElement(By.linkText("Your trips")).click();
-        driver.findElement(By.id("SignIn")).click();
+		// Verify Error message after login without credentials
+		logger.log("Verify Error message after login without credentials");
+		By byLocErrorPanel = library.getByObject("errorMsg");
+		library.waitForElementToDisplay(byLocErrorPanel);
+		String errorMessage = driver.findElement(byLocErrorPanel).getText();
+		Assert.assertTrue(errorMessage
+				.contains(PropertFileManager.getPropertyFromFile("loginErrorMessage", MiscConstants.PROP_MISC)));
 
-        driver.findElement(By.id("signInButton")).click();
-
-        String errors1 = driver.findElement(By.id("errors1")).getText();
-        Assert.assertTrue(errors1.contains("There were errors in your submission"));
-        driver.quit();
-    }
-
-    private void waitFor(int durationInMilliSeconds) {
-        try {
-            Thread.sleep(durationInMilliSeconds);
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-    }
-
-    private void setDriverPath() {
-        if (PlatformUtil.isMac()) {
-            System.setProperty("webdriver.chrome.driver", "chromedriver");
-        }
-        if (PlatformUtil.isWindows()) {
-            System.setProperty("webdriver.chrome.driver", "chromedriver.exe");
-        }
-        if (PlatformUtil.isLinux()) {
-            System.setProperty("webdriver.chrome.driver", "chromedriver_linux");
-        }
-    }
-
-
+	}
 }
